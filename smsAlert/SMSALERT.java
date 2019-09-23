@@ -81,50 +81,8 @@ public class SMSALERT extends AsyncTask<String, Void, String> {
 
     //get xml string
     public String getXML() {
-        StringBuilder xmlData = new StringBuilder("<MESSAGE>");
-        xmlData.append("<AUTHKEY>").append(apikey).append("</AUTHKEY>");
-
-        // ROUTE
-        if (route != null)
-            xmlData.append("<ROUTE>").append(route).append("</ROUTE>");
-      
-        // SENDER ID : Cannot be Null
-        if (sender != null)
-            xmlData.append("<SENDER>").append(sender).append("</SENDER>");
-        else
-            return "ERROR : Sender ID is Missing";
-
-        //FLASH
-        if (isFlash)
-            xmlData.append("<FLASH>").append("1").append("</FLASH>");
-
-       
-        // TEXT : Cannot be Null
-        if (text != null)
-            xmlData.append("<SMS TEXT=\"").append(text).append("\">");
-        else
-            return "ERROR : Text Message is Missing";
-
-        // TO : Cannot be null
-        if (mobileno != null) {
-            if (mobileno != null) {
-                if (mobileno.length() == 10)
-                    xmlData.append("<ADDRESS TO=\"").append(mobileno).append("\"></ADDRESS>");
-                else
-                    return "ERROR : " + mobileno + " is not a valid Mobile Number";
-            }
-
-            xmlData.append("</SMS>").append("</MESSAGE>");
-        } else
-            return "ERROR : Mobile Number(s) Missing";
-
-        String finalLink = null;
-        try {
-            finalLink = mainUrl + URLEncoder.encode(xmlData.toString(), "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-
+        String finalLink = mainUrl + "apikey=" + apikey + "&sender=" + sender + "&mobileno=" + mobileno + "&text=" + URLEncoder.encode(text, "UTF-8");
+        
         return finalLink;
     }
 
