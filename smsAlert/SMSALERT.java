@@ -36,11 +36,13 @@ import java.util.concurrent.ExecutionException;
 
 public class SMSALERT extends AsyncTask<String, Void, String> {
 
-    String mainUrl = "http://www.smsalert.co.in/api/push.json?";
-    String apikey, text, sender, mobileno, msgSchedule, route;
+    String mainUrl = "https://www.smsalert.co.in/api/push.json?";
+    String otpUrl = "https://www.smsalert.co.in/api/mverify.json?";
+    String apikey, user, pwd, auth, text, sender, mobileno, msgSchedule, route, code;
     boolean isFlash = false, isUnicode = false, debugMode = false;
     String debugTAG = "SMSALERT";
     String response;
+    String template = "Hello, Your OTP is [otp]";
 
     //api
     public SMSALERT(String key) {
@@ -52,6 +54,13 @@ public class SMSALERT extends AsyncTask<String, Void, String> {
         apikey = key;
         debugMode = debug;
     }
+
+    //Authentication using username and password
+    public SMSALERT(String username,String password) {
+       user = username;
+       pwd = password;
+    }
+
 
 	//compose message
     public void composeMessage(String id, String message) {
@@ -79,10 +88,37 @@ public class SMSALERT extends AsyncTask<String, Void, String> {
         route = route;
     }
 
+    public void setauth(){
+        if (apikey != null)
+            auth ="&apikey=" + apikey;
+        else
+            auth ="&user=" + user+ "&pwd=" + pwd;
+    }
+
     //get xml string
-    public String getXML() {
-        String finalLink = mainUrl + "apikey=" + apikey + "&sender=" + sender + "&mobileno=" + mobileno + "&text=" + URLEncoder.encode(text, "UTF-8");
+    public String getXML() throws UnsupportedEncodingException{
+        setauth();
+
+        String finalLink = mainUrl + auth + "&sender=" + sender + "&mobileno=" + mobileno + "&text=" + URLEncoder.encode(text, "UTF-8");
         
+        return finalLink;
+    }
+
+    //get xml string
+    public String getotpXML() throws UnsupportedEncodingException{
+        setauth();
+
+        String finalLink = otpUrl + auth + "&sender=" + sender + "&mobileno=" + mobileno + "&template=" + URLEncoder.encode(template, "UTF-8");
+
+        return finalLink;
+    }
+
+    //get xml string
+    public String setotpXML() throws UnsupportedEncodingException{
+        setauth();
+
+        String finalLink = otpUrl + auth + "&mobileno=" + mobileno + "&code=" + code;
+
         return finalLink;
     }
 
@@ -90,6 +126,32 @@ public class SMSALERT extends AsyncTask<String, Void, String> {
     public String send() {
         try {
             return execute("SEND").get();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            return "Exception: " + e;
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+            return "Exception: " + e;
+        }
+    }
+
+    //send otp function
+    public String sendOTP() {
+        try {
+            return execute("SENDOTP").get();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            return "Exception: " + e;
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+            return "Exception: " + e;
+        }
+    }
+
+    //verify otp function
+    public String verifyOTP(String code) {
+        try {
+            return execute("VERIFYOTP").get();
         } catch (InterruptedException e) {
             e.printStackTrace();
             return "Exception: " + e;
@@ -119,7 +181,24 @@ public class SMSALERT extends AsyncTask<String, Void, String> {
                         return url;
                     }
                     break;
-               
+
+                case "SENDOTP":
+                    String sendotp = getotpXML();
+                    if (!sendotp.contains("ERROR")) {
+                        myURL = new URL(sendotp);
+                    } else {
+                        return sendotp;
+                    }
+                    break;
+
+                case "VERIFYOTP":
+                    String verifyotp = setotpXML();
+                    if (!verifyotp.contains("ERROR")) {
+                        myURL = new URL(verifyotp);
+                    } else {
+                        return verifyotp;
+                    }
+                    break;
             }
 
             if (myURL != null) {
